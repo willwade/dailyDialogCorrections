@@ -33,18 +33,23 @@ tokenized_test_dataset = test_dataset.map(preprocess_function, batched=True)
 # Training arguments
 training_args = TrainingArguments(
     output_dir="./results",
-    evaluation_strategy="epoch",
-    learning_rate=2e-5,
-    weight_decay=0.01,
-    num_train_epochs=3,
-    per_device_train_batch_size=16,
-    per_device_eval_batch_size=16,
-    save_strategy="epoch",
-    load_best_model_at_end=True,
+    per_device_train_batch_size=8,  # Adjust based on the GPU memory
+    save_steps=500,  # Save a checkpoint every 500 steps
+    save_total_limit=2,  # Keep only the 2 most recent checkpoints
+    evaluation_strategy="steps",  # Evaluate periodically
+    eval_steps=500,  # Evaluation frequency
+    logging_dir='./logs',  # Directory for logs
+    logging_steps=100,  # Log metrics every 100 steps
+    fp16=True
 )
 
 # Initialize the model
-model = T5ForConditionalGeneration.from_pretrained('t5-small')
+checkpoint = None  # Replace with path to checkpoint if resuming
+if checkpoint:
+    model = T5ForConditionalGeneration.from_pretrained(checkpoint)
+else:
+    model = T5ForConditionalGeneration.from_pretrained('t5-small')
+
 
 # Initialize the Trainer
 trainer = Trainer(
